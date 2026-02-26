@@ -118,8 +118,9 @@ single_game_pbp <- function(game_id, extra_parse) {
   pbp$game_id <- game_id
   # pbp$date <- as.Date(stripwhite(gsub('^.*\\(', '', gsub('\\).*$', '', gsub('\\(..\\)', '', gsub('^.*<title data-react-helmet="true">', '', x[1]))))), '%b %d, %Y')
   date_txt <- stripwhite(gsub('^.*\\(', '', gsub('\\).*$', '', gsub('\\(..\\)', '', gsub('^.*<title data-react-helmet="true">', '', x[1])))))
-  pbp$date <- suppressWarnings(as.Date(lubridate::mdy(date_txt, locale = "en_US")))
-  if (is.na(pbp$date)) {
+  date_x <- suppressWarnings(as.Date(lubridate::mdy(date_txt, locale = "en_US")))
+  pbp$date <- date_x
+  if (is.na(date_x)) {
     stop("Could not parse game date from ESPN page title: ", date_txt)
   }
   pbp$score_diff <- pbp$home_score - pbp$away_score

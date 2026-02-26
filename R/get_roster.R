@@ -15,11 +15,11 @@ get_roster <- function(team, season = current_season) {
   if(!"ncaahoopR" %in% .packages()) {
     ids <- create_ids_df()
   }
-  
+
   if(!team %in% ids$team) {
     stop("Invalid team. Please consult the ids data frame for a list of valid teams, using data(ids).")
   }
-  
+
   if(season == current_season) {
     base_url <- "https://www.espn.com/mens-college-basketball/team/roster/_/id/"
     url <-  paste(base_url, ids$id[ids$team == team], "/", ids$link[ids$team == team], sep = "")
@@ -39,7 +39,7 @@ get_roster <- function(team, season = current_season) {
       unique() %>%
       # extract the 7 digit player id
       stringr::str_extract(., "[0-9]{7}")
-    
+
     for(i in 1:ncol(tmp)) {
       tmp[,i] <- as.character(tmp[,i])
     }
@@ -47,10 +47,10 @@ get_roster <- function(team, season = current_season) {
     tmp$name <- gsub("[0-9]*", "", tmp$name)
     # player image is found at this link
     tmp$player_image <- paste0("https://a.espncdn.com/combiner/i?img=/i/headshots/mens-college-basketball/players/full/", player_ids, ".png")
-    tmp$player_id <- suppressWarnings(as.numeric(player_ids))
+    tmp$player_id <- as.character(player_ids) # To ensure homogeneous outputs as character strings.
     tmp <- dplyr::arrange(tmp, number)
     tmp <- dplyr::select(tmp, player_id, number, name, position, height, weight, class, hometown, player_image)
-    
+
     return(tmp)
   } else {
     roster <-
@@ -60,7 +60,21 @@ get_roster <- function(team, season = current_season) {
       warning('No Roster Available')
       return(NULL)
     }
-    
+
+    # --- Add player_id from player_image ---
+    if (!is.null(roster) && nrow(roster) > 0) {
+      if (!"player_image" %in% names(roster)) {
+        roster$player_id <- NA_character_
+      } else {
+        roster <- roster %>%
+          dplyr::mutate(
+            player_id = stringr::str_extract(player_image, "(?<=/players/full/)\\d+(?=\\.png)")
+          ) %>%
+          dplyr::mutate(player_id = as.character(player_id)) %>%
+          dplyr::select(player_id, dplyr::everything())
+      }
+    }
+
     return(roster)
   }
 }

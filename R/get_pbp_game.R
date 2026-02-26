@@ -24,7 +24,7 @@ get_pbp_game <- function(game_ids, extra_parse = T) {
     pbp <- try(single_game_pbp(game_ids[g], extra_parse), silent = T)
 
     if(class(pbp) == "try-error") {
-      message("Play-by-Play Data Not Available")
+      message("Play-by-Play Data Not Available for id ", game_ids[g])
       next
     }
 
